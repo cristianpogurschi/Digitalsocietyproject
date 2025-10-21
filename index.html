@@ -102,6 +102,7 @@
 
   <footer>© 2025 Digital Society Project</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@formspree/js"></script>
 <script>
 function makeSVGPoint(svg, clientX, clientY) {
   const pt = svg.createSVGPoint();
@@ -131,96 +132,4 @@ function initTriangle(svgId, dotId, gridGroupId, displayId, econInputId, healthI
   const dot = document.getElementById(dotId);
   const gridGroup = document.getElementById(gridGroupId);
   const displayEl = document.getElementById(displayId);
-  const vA = { x: 250, y: 40 }, vB = { x: 60, y: 400 }, vC = { x: 440, y: 400 };
-
-  function drawGrid(lines = 6) {
-    while (gridGroup.firstChild) gridGroup.removeChild(gridGroup.firstChild);
-    for (let i = 1; i < lines; i++) {
-      const t = i / lines;
-      const L = { x: vB.x + (vA.x - vB.x)*t, y: vB.y + (vA.y - vB.y)*t };
-      const R = { x: vC.x + (vA.x - vC.x)*t, y: vC.y + (vA.y - vC.y)*t };
-      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1', L.x); line.setAttribute('y1', L.y);
-      line.setAttribute('x2', R.x); line.setAttribute('y2', R.y);
-      line.setAttribute('stroke','#eee'); line.setAttribute('stroke-width','1');
-      gridGroup.appendChild(line);
-    }
-  }
-  drawGrid(6);
-
-  function setSelectionPoint(px, py, aPct, bPct, cPct) {
-    dot.setAttribute('cx', px);
-    dot.setAttribute('cy', py);
-    dot.setAttribute('fill', dotColor);
-    dot.setAttribute('visibility', 'visible');
-    const aS = Number(aPct).toFixed(1), bS = Number(bPct).toFixed(1), cS = Number(cPct).toFixed(1);
-    displayEl.innerHTML = `Selected Values:<br> Economic Growth and Health: ${aS}% &nbsp; | &nbsp; Wellbeing: ${bS}% &nbsp; | &nbsp; Care for Climate: ${cS}%`;
-    document.getElementById(econInputId).value = aS;
-    document.getElementById(healthInputId).value = bS;
-    document.getElementById(climateInputId).value = cS;
-  }
-
-  function handlePointer(evt) {
-    const isTouch = evt.touches && evt.touches.length;
-    const clientX = isTouch ? evt.touches[0].clientX : evt.clientX;
-    const clientY = isTouch ? evt.touches[0].clientY : evt.clientY;
-    const pSvg = makeSVGPoint(svg, clientX, clientY);
-    const bary = barycentricFromPoint(pSvg, vA, vB, vC);
-    if (!bary) return;
-    const bn = clampAndNormalize(bary);
-    const { alpha, beta, gamma } = bn;
-    const px = alpha*vA.x + beta*vB.x + gamma*vC.x;
-    const py = alpha*vA.y + beta*vB.y + gamma*vC.y;
-    setSelectionPoint(px, py, alpha*100, beta*100, gamma*100);
-    if (isTouch) evt.preventDefault();
-  }
-
-  svg.addEventListener('click', handlePointer);
-  svg.addEventListener('touchstart', handlePointer, { passive:false });
-
-  return {
-    set: function(aPct, bPct, cPct){
-      const alpha = Number(aPct)/100, beta = Number(bPct)/100, gamma = Number(cPct)/100;
-      const sum = alpha + beta + gamma || 1;
-      const an = alpha/sum, bn = beta/sum, gn = gamma/sum;
-      const px = an*vA.x + bn*vB.x + gn*vC.x;
-      const py = an*vA.y + bn*vB.y + gn*vC.y;
-      setSelectionPoint(px, py, an*100, bn*100, gn*100);
-    }
-  };
-}
-
-const present = initTriangle('svg-present','dot-present','grid-present','valuesPresent','econPresent','healthPresent','climatePresent','#007bff');
-const future  = initTriangle('svg-future','dot-future','grid-future','valuesFuture','econFuture','healthFuture','climateFuture','#28a745');
-
-present.set(33.3,33.3,33.4);
-future.set(33.3,33.3,33.4);
-
-document.getElementById('surveyForm').addEventListener('submit', function(e){
-  const emailInput = document.getElementById('email');
-  const email = emailInput.value.trim().toLowerCase();
-  if (!email) {
-      alert('Please enter your email.');
-      e.preventDefault();
-      return;
-  }
-
-  const submittedEmails = JSON.parse(localStorage.getItem('submittedEmails') || '[]');
-  if (submittedEmails.includes(email)) {
-      alert('You have already submitted this survey.');
-      e.preventDefault();
-      return;
-  }
-
-  if(!document.getElementById('econPresent').value || !document.getElementById('econFuture').value){
-      alert('Please click inside both triangles before submitting.');
-      e.preventDefault();
-      return;
-  }
-
-  submittedEmails.push(email);
-  localStorage.setItem('submittedEmails', JSON.stringify(submittedEmails));
-});
-</script>
-</body>
-</html>
+  const vA = { x: 250, y: 40 }, vB = { x: 60, y: 400 }, vC = { x
