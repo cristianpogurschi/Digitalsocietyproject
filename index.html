@@ -4,9 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Values Survey — Present & 2075</title>
+
+<!-- ✅ Load Plotly first (synchronously) -->
+<script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
   :root {
     --primary: #007bff;
@@ -100,16 +105,6 @@
     color: #666;
     text-align: center;
   }
-  .error {
-    background: #ffe9e9;
-    color: #a40000;
-    border: 1px solid #f1b4b4;
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin: 10px 0 0;
-    display: none;
-    max-width: 900px;
-  }
 </style>
 </head>
 <body>
@@ -120,19 +115,17 @@
   The closer you click to a corner, the more you value that dimension. Then press “Submit”.
 </p>
 
-<div id="loadError" class="error" role="alert"></div>
-
 <div class="plots">
   <div class="plot-card">
     <h2>Present Day</h2>
-    <div id="plot-present" class="plot" role="img" aria-label="Ternary plot for Present Day"></div>
+    <div id="plot-present" class="plot"></div>
     <div class="values" id="valuesPresent">Click inside the triangle to select your point.</div>
     <div class="hint">Economic Growth • Health & Wellbeing • Care for Climate</div>
   </div>
 
   <div class="plot-card">
     <h2 class="future">Year 2075</h2>
-    <div id="plot-future" class="plot" role="img" aria-label="Ternary plot for Year 2075"></div>
+    <div id="plot-future" class="plot"></div>
     <div class="values" id="valuesFuture">Click inside the triangle to select your point.</div>
     <div class="hint">Economic Growth • Health & Wellbeing • Care for Climate</div>
   </div>
@@ -155,57 +148,13 @@
 <footer>© 2025 Digital Society Project — Interactive Values Survey</footer>
 
 <script>
-  // Load Plotly with fallbacks, then initialize plots.
-  (async function boot() {
-    const errorBox = document.getElementById("loadError");
-    const cdns = [
-      "https://cdn.plot.ly/plotly-2.27.1.min.js",
-      "https://cdn.plot.ly/plotly-latest.min.js",
-      "https://unpkg.com/plotly.js-dist-min@2.27.1/plotly.min.js"
-    ];
-
-    async function loadScript(src) {
-      return new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = src;
-        s.async = true;
-        s.onload = () => resolve(src);
-        s.onerror = () => reject(new Error("Failed to load " + src));
-        document.head.appendChild(s);
-      });
-    }
-
-    let loaded = false;
-    for (const src of cdns) {
-      try {
-        await loadScript(src);
-        if (window.Plotly) {
-          loaded = true;
-          break;
-        }
-      } catch (e) {
-        // try the next CDN
-      }
-    }
-
-    if (!loaded) {
-      errorBox.style.display = "block";
-      errorBox.textContent = "Could not load Plotly. Check your network/CSP and try again.";
-      return;
-    }
-
-    console.log("Plotly version:", Plotly.version);
-    initPlots();
-  })();
-
+document.addEventListener("DOMContentLoaded", function() {
   function generateTernaryGrid(sum = 100, step = 2) {
     const a = [], b = [], c = [];
     for (let A = 0; A <= sum; A += step) {
       for (let B = 0; B <= sum - A; B += step) {
         const C = sum - A - B;
-        a.push(A);
-        b.push(B);
-        c.push(C);
+        a.push(A); b.push(B); c.push(C);
       }
     }
     return { a, b, c };
@@ -214,41 +163,25 @@
   function createTernaryPlot({ plotId, displayId, econInputId, healthInputId, climateInputId, color }) {
     const el = document.getElementById(plotId);
     const displayEl = document.getElementById(displayId);
-    const SUM = 100;
-    const STEP = 2; // denser grid for reliable clicks
+    const SUM = 100, STEP = 2;
 
     const grid = generateTernaryGrid(SUM, STEP);
 
     const gridTrace = {
       type: "scatterternary",
       mode: "markers",
-      name: "Click area",
-      a: grid.a,
-      b: grid.b,
-      c: grid.c,
-      marker: {
-        size: 22,
-        // tiny visible alpha ensures pickability in all browsers
-        color: "rgba(0,0,0,0.01)",
-        line: { width: 0 },
-        opacity: 0.01
-      },
-      hoverinfo: "skip",
-      showlegend: false
+      a: grid.a, b: grid.b, c: grid.c,
+      marker: { size: 22, color: "rgba(0,0,0,0.01)", opacity: 0.01 },
+      hoverinfo: "skip", showlegend: false
     };
 
     const selectedTrace = {
       type: "scatterternary",
       mode: "markers",
-      name: "Your selection",
-      a: [34],
-      b: [33],
-      c: [33],
+      a: [34], b: [33], c: [33],
       marker: { color, size: 12, symbol: "circle" },
       hovertemplate:
-        "Economic Growth: %{a}%<br>" +
-        "Health & Wellbeing: %{b}%<br>" +
-        "Care for Climate: %{c}%<extra></extra>",
+        "Economic Growth: %{a}%<br>Health & Wellbeing: %{b}%<br>Care for Climate: %{c}%<extra></extra>",
       showlegend: false
     };
 
@@ -267,15 +200,11 @@
       hovermode: "closest"
     };
 
-    const config = { responsive: true, displayModeBar: false };
-
-    Plotly.newPlot(el, [gridTrace, selectedTrace], layout, config);
+    Plotly.newPlot(el, [gridTrace, selectedTrace], layout, { responsive: true, displayModeBar: false });
 
     function updateSelection(A, B, C) {
       Plotly.restyle(el, { a: [[A]], b: [[B]], c: [[C]] }, [1]);
-      const aPct = Number(A).toFixed(0);
-      const bPct = Number(B).toFixed(0);
-      const cPct = Number(C).toFixed(0);
+      const aPct = A.toFixed(0), bPct = B.toFixed(0), cPct = C.toFixed(0);
       displayEl.innerHTML = `<strong>Selected Values:</strong><br>
         Economic Growth: ${aPct}% &nbsp; | &nbsp;
         Health & Wellbeing: ${bPct}% &nbsp; | &nbsp;
@@ -286,19 +215,14 @@
       el.dataset.clicked = "true";
     }
 
-    // Initialize with a balanced default to confirm rendering
     updateSelection(34, 33, 33);
 
     el.on("plotly_click", (evt) => {
-      const gridPoint = evt.points && evt.points.find(p => p.curveNumber === 0);
-      if (!gridPoint) return;
-      updateSelection(gridPoint.a, gridPoint.b, gridPoint.c);
+      const p = evt.points?.find(pt => pt.curveNumber === 0);
+      if (p) updateSelection(p.a, p.b, p.c);
     });
 
-    // Keep responsive
-    window.addEventListener("resize", () => {
-      Plotly.Plots.resize(el);
-    });
+    window.addEventListener("resize", () => Plotly.Plots.resize(el));
   }
 
   function initPlots() {
@@ -318,17 +242,20 @@
       climateInputId: "climateFuture",
       color: "#28a745"
     });
-
-    // Prevent submit without both clicks
-    document.getElementById("surveyForm").addEventListener("submit", function (e) {
-      const presentClicked = document.getElementById("plot-present").dataset.clicked === "true";
-      const futureClicked = document.getElementById("plot-future").dataset.clicked === "true";
-      if (!presentClicked || !futureClicked) {
-        e.preventDefault();
-        alert("Please click on both triangles to select your values before submitting.");
-      }
-    });
   }
+
+  initPlots();
+
+  document.getElementById("surveyForm").addEventListener("submit", function(e) {
+    const presentClicked = document.getElementById("plot-present").dataset.clicked === "true";
+    const futureClicked = document.getElementById("plot-future").dataset.clicked === "true";
+    if (!presentClicked || !futureClicked) {
+      e.preventDefault();
+      alert("Please click on both triangles to select your values before submitting.");
+    }
+  });
+});
 </script>
+
 </body>
 </html>
