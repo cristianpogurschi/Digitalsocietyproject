@@ -1,239 +1,178 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Values Survey — Present & 2075 (Clickable Ternary)</title>
+<title>Clickable Ternary — Grid Approach</title>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <style>
-  body {
-    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: #f3f5f9;
-    color: #222;
-    margin: 0;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 { text-align:center; margin: 6px 0 18px; font-size: 28px; }
-  p { text-align:center; max-width:900px; color:#555; margin:0 0 18px; }
-  .plots { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; width:100%; max-width:1200px; }
-  .plot-card {
-    width:480px; background:#fff; border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,0.08);
-    padding:18px; text-align:center;
-  }
-  #plot-present, #plot-future { width:100%; height:460px; }
-  .values { margin-top:12px; font-weight:600; color:#333; }
-  form { margin-top:20px; text-align:center; width:100%; }
-  button {
-    background:#007bff; color:#fff; border:none; padding:10px 18px; border-radius:10px; cursor:pointer;
-    font-size:16px;
-  }
-  footer { margin:30px 0 10px; color:#777; font-size:13px; }
-  .hint { font-size:13px; color:#777; margin-top:6px; }
+  body { font-family: Arial, Helvetica, sans-serif; background:#f3f5f9; color:#222; margin:24px; display:flex; flex-direction:column; align-items:center; }
+  h1 { margin:6px 0 12px; }
+  .container { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; max-width:1200px; }
+  .card { background:#fff; padding:16px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.07); width:480px; text-align:center; }
+  #plot-present, #plot-future { width:100%; height:420px; }
+  .values{ margin-top:10px; font-weight:600; }
+  button { margin-top:18px; background:#007bff; color:#fff; border:none; padding:10px 16px; border-radius:10px; cursor:pointer; }
+  footer{ margin-top:20px; color:#666; font-size:13px; }
 </style>
 </head>
 <body>
   <h1>Values Survey — Present Day vs Year 2075</h1>
-  <p>Click inside each triangle to set your balance across the three priorities: Economic Growth, Health & Wellbeing, Care for Climate. The closer to a corner the higher that percentage. Click a valid spot inside a triangle — the marker & percentages will update.</p>
+  <p style="max-width:900px;text-align:center;color:#555;">Click anywhere inside a triangle to set percentages for Economic Growth, Health &amp; Wellbeing, and Care for Climate. (This uses an invisible grid of clickable points for a reliable experience.)</p>
 
-  <div class="plots">
-    <div class="plot-card">
-      <h2 style="color:#007bff;margin-bottom:8px;">Present Day</h2>
+  <div class="container">
+    <div class="card">
+      <h3 style="color:#007bff;margin-bottom:8px;">Present Day</h3>
       <div id="plot-present"></div>
       <div class="values" id="valuesPresent">Selected Values: —</div>
-      <div class="hint">Click anywhere inside the triangle to set your point.</div>
     </div>
 
-    <div class="plot-card">
-      <h2 style="color:#28a745;margin-bottom:8px;">Year 2075</h2>
+    <div class="card">
+      <h3 style="color:#28a745;margin-bottom:8px;">Year 2075</h3>
       <div id="plot-future"></div>
       <div class="values" id="valuesFuture">Selected Values: —</div>
-      <div class="hint">Click anywhere inside the triangle to set your point.</div>
     </div>
   </div>
 
-  <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-    <!-- Present -->
+  <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" style="width:100%;max-width:1200px;text-align:center;">
+    <!-- present -->
     <input type="hidden" name="economic_present" id="econPresent">
     <input type="hidden" name="health_present" id="healthPresent">
     <input type="hidden" name="climate_present" id="climatePresent">
-    <!-- Future -->
+    <!-- future -->
     <input type="hidden" name="economic_future" id="econFuture">
     <input type="hidden" name="health_future" id="healthFuture">
     <input type="hidden" name="climate_future" id="climateFuture">
 
-    <div style="text-align:center; margin-top:18px;">
-      <button type="submit">Submit Both Responses</button>
-    </div>
+    <button type="submit">Submit Both Responses</button>
   </form>
 
   <footer>© 2025 Digital Society Project</footer>
 
 <script>
 /*
-  This function creates a ternary plot and attaches a click handler that:
-  - computes triangle vertex pixel coordinates using plot._fullLayout.ternary.domain
-  - converts click (clientX, clientY) into barycentric coordinates (α,β,γ)
-  - α => top vertex (Economic Growth)
-    β => left base (Health & Wellbeing)
-    γ => right base (Care for Climate)
-  - updates the marker, display, and hidden inputs.
+  Grid-click ternary solution:
+  - Build a dense grid of ternary points (a,b,c) that sum to 100.
+  - Make this a trace with markers that are invisible (opacity 0) but clickable.
+  - Add a second trace that shows the selected point (visible marker).
+  - Clicking any grid point triggers a 'plotly_click' and we update the selected trace and form values.
 */
-function createClickableTernary(plotId, displayId, econInput, healthInput, climateInput, color) {
-  const layout = {
-    ternary: {
-      sum: 100,
-      aaxis: { title: "Economic Growth", min: 0 },
-      baxis: { title: "Health & Wellbeing", min: 0 },
-      caxis: { title: "Care for Climate", min: 0 }
+
+function buildGridPoints(stepPercent = 4) {
+  // stepPercent determines the grid resolution. Smaller -> finer but more points.
+  const aArr = [], bArr = [], cArr = [];
+  for (let a = 0; a <= 100; a += stepPercent) {
+    for (let b = 0; b <= 100 - a; b += stepPercent) {
+      const c = 100 - a - b;
+      // push point (we allow points where c may be fractional due to floating math but they sum to ~100)
+      aArr.push(Number(a.toFixed(2)));
+      bArr.push(Number(b.toFixed(2)));
+      cArr.push(Number(c.toFixed(2)));
+    }
+  }
+  return { aArr, bArr, cArr };
+}
+
+function createTernary(plotId, displayId, econInput, healthInput, climateInput, pointColor) {
+  const resolutionStep = 2; // change to 1 for finer grid (more points); 2 is already fine and performant
+  const grid = buildGridPoints(resolutionStep);
+
+  // Invisible grid trace (clickable)
+  const gridTrace = {
+    type: 'scatterternary',
+    mode: 'markers',
+    a: grid.aArr,
+    b: grid.bArr,
+    c: grid.cArr,
+    marker: {
+      size: 14,        // bigger size makes clicks easier
+      color: 'rgba(0,0,0,0)', // invisible
+      line: { width: 0 }
     },
-    margin: { t: 40, l: 40, r: 40, b: 40 },
-    paper_bgcolor: '#fff',
-    plot_bgcolor: '#fff',
+    hoverinfo: 'none',
     showlegend: false
   };
 
-  // initial neutral marker ~ 33/33/34
-  const data = [{
+  // Visible selected point (starts neutral)
+  const selectedTrace = {
     type: 'scatterternary',
     mode: 'markers',
-    a: [33],
-    b: [33],
-    c: [34],
-    marker: { color: color, size: 12 },
+    a: [33.3],
+    b: [33.3],
+    c: [33.4],
+    marker: {
+      color: pointColor,
+      size: 14,
+      symbol: 'circle'
+    },
     hoverinfo: 'text',
-    text: ['Economic: 33, Health: 33, Climate: 34']
-  }];
+    text: ['Economic: 33.3, Health: 33.3, Climate: 33.4'],
+    showlegend: false
+  };
 
-  Plotly.newPlot(plotId, data, layout, {responsive: true});
+  const layout = {
+    ternary: {
+      sum: 100,
+      aaxis: { title: 'Economic Growth' },
+      baxis: { title: 'Health & Wellbeing' },
+      caxis: { title: 'Care for Climate' }
+    },
+    margin: { t: 40, l: 40, r: 40, b: 40 },
+    paper_bgcolor: '#fff'
+  };
+
+  Plotly.newPlot(plotId, [gridTrace, selectedTrace], layout, {responsive: true});
 
   const plotDiv = document.getElementById(plotId);
   const display = document.getElementById(displayId);
 
-  // set initial display & inputs
-  function setValues(aPct, bPct, cPct) {
-    display.innerHTML = `Selected Values:<br>
-      Economic Growth: ${aPct}% &nbsp; | &nbsp;
-      Health & Wellbeing: ${bPct}% &nbsp; | &nbsp;
-      Care for Climate: ${cPct}%`;
+  function updateSelected(aPct, bPct, cPct) {
+    // normalize to sum 100 (float rounding may create tiny drift)
+    let a = parseFloat(aPct), b = parseFloat(bPct), c = parseFloat(cPct);
+    const s = a + b + c || 1;
+    a = (a / s * 100);
+    b = (b / s * 100);
+    c = (c / s * 100);
+    const aStr = a.toFixed(1), bStr = b.toFixed(1), cStr = c.toFixed(1);
 
-    document.getElementById(econInput).value = aPct;
-    document.getElementById(healthInput).value = bPct;
-    document.getElementById(climateInput).value = cPct;
+    display.innerHTML = `Selected Values:<br> Economic Growth: ${aStr}% &nbsp; | &nbsp; Health & Wellbeing: ${bStr}% &nbsp; | &nbsp; Care for Climate: ${cStr}%`;
+    document.getElementById(econInput).value = aStr;
+    document.getElementById(healthInput).value = bStr;
+    document.getElementById(climateInput).value = cStr;
 
-    // update marker text & position
+    // update visible marker
     Plotly.restyle(plotDiv, {
-      a: [[aPct]],
-      b: [[bPct]],
-      c: [[cPct]],
-      'text': [[`Economic: ${aPct}, Health: ${bPct}, Climate: ${cPct}`]]
-    }, [0]);
+      'a': [[aStr]],
+      'b': [[bStr]],
+      'c': [[cStr]],
+      'text': [[`Economic: ${aStr}, Health: ${bStr}, Climate: ${cStr}`]]
+    }, [1]); // update the selectedTrace (trace index 1)
   }
 
-  // Initialize values
-  setValues('33.0','33.0','34.0');
+  // initialize display and inputs with neutral values
+  updateSelected(33.3, 33.3, 33.4);
 
-  // Helper: get triangle vertex pixel coordinates from plot._fullLayout.ternary.domain
-  function getTrianglePixels() {
-    const full = plotDiv._fullLayout;
-    if (!full || !full.ternary || !full.ternary.domain) return null;
+  // Listen for clicks on points in the grid trace. Plotly will fire plotly_click for the clicked grid point.
+  plotDiv.on('plotly_click', function(event) {
+    if (!event || !event.points || event.points.length === 0) return;
+    const pt = event.points[0];
+    if (typeof pt.a === 'undefined') return;
 
-    const domain = full.ternary.domain; // { x: [left,right], y: [bottom,top] } (fractions)
-    const w = full.width;
-    const h = full.height;
-
-    // Pixel positions
-    const left = domain.x[0] * w;
-    const right = domain.x[1] * w;
-    const top = domain.y[1] * h;
-    const bottom = domain.y[0] * h;
-
-    // Vertices: a(top apex), b(left base), c(right base)
-    const vxA = (left + right) / 2; const vyA = top;    // Economic (top)
-    const vxB = left;           const vyB = bottom;     // Health (left)
-    const vxC = right;          const vyC = bottom;     // Climate (right)
-
-    return {
-      v0: { x: vxA, y: vyA }, // α
-      v1: { x: vxB, y: vyB }, // β
-      v2: { x: vxC, y: vyC }, // γ
-      plotLeft: full._paperMargin.l || 0,
-      plotTop: full._paperMargin.t || 0,
-      width: w,
-      height: h
-    };
-  }
-
-  // Convert clientX/Y to pixels relative to the full layout's pixel coordinate system.
-  function clientToLocal(e) {
-    const rect = plotDiv.getBoundingClientRect();
-    // plotDiv contains the plot area at (rect.left, rect.top)
-    // We must compute coordinates in the same pixel space as full.width/full.height (they use the SVG viewport top-left).
-    // Using rect and client coords is sufficient here.
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  }
-
-  // Compute barycentric coordinates α,β,γ of point p relative to triangle (v0,v1,v2).
-  function barycentricCoords(p, v0, v1, v2) {
-    // Using formula for barycentric coordinates in 2D
-    const denom = ( (v1.y - v2.y)*(v0.x - v2.x) + (v2.x - v1.x)*(v0.y - v2.y) );
-    if (Math.abs(denom) < 1e-9) return null;
-    const alpha = ( (v1.y - v2.y)*(p.x - v2.x) + (v2.x - v1.x)*(p.y - v2.y) ) / denom;
-    const beta  = ( (v2.y - v0.y)*(p.x - v2.x) + (v0.x - v2.x)*(p.y - v2.y) ) / denom;
-    const gamma = 1 - alpha - beta;
-    return { alpha, beta, gamma };
-  }
-
-  // Click handler
-  plotDiv.addEventListener('click', function(evt) {
-    const tri = getTrianglePixels();
-    if (!tri) {
-      // shouldn't happen once plot is rendered
-      return;
-    }
-
-    const local = clientToLocal(evt);
-
-    // local x,y are relative to the bounding rect; the triangle vertex coords are in the same rect space (we used domain fractions * full.width/height)
-    const p = { x: local.x, y: local.y };
-
-    const v0 = tri.v0, v1 = tri.v1, v2 = tri.v2;
-    const bary = barycentricCoords(p, v0, v1, v2);
-    if (!bary) return;
-
-    let { alpha, beta, gamma } = bary;
-
-    // check if inside triangle: all barycentric coords within [0,1] (allow small tolerance).
-    const tol = 1e-7;
-    if (alpha < -tol || beta < -tol || gamma < -tol) {
-      // Click outside triangle -> ignore (do nothing)
-      // Optionally: you could clamp negative values to 0 and renormalize to allow outside clicks to snap to edge.
-      return;
-    }
-
-    // clamp small negative rounding issues and renormalize
-    alpha = Math.max(0, alpha);
-    beta  = Math.max(0, beta);
-    gamma = Math.max(0, gamma);
-    const sum = alpha + beta + gamma || 1;
-    const aPct = (alpha / sum * 100).toFixed(1);
-    const bPct = (beta  / sum * 100).toFixed(1);
-    const cPct = (gamma / sum * 100).toFixed(1);
-
-    setValues(aPct, bPct, cPct);
+    // pt.a, pt.b, pt.c are the ternary values for the clicked (grid) point
+    updateSelected(pt.a, pt.b, pt.c);
   });
 
-  // Also handle window resize to keep access to plot._fullLayout current (Plotly is responsive)
-  window.addEventListener('resize', function(){ /* nothing required — getTrianglePixels reads up-to-date layout */ });
+  // Return a function that allows external setting if needed
+  return {
+    set: updateSelected
+  };
 }
 
 // Create both plots
-createClickableTernary("plot-present", "valuesPresent", "econPresent", "healthPresent", "climatePresent", "#007bff");
-createClickableTernary("plot-future",  "valuesFuture",  "econFuture",  "healthFuture",  "climateFuture",  "#28a745");
+const present = createTernary('plot-present', 'valuesPresent', 'econPresent', 'healthPresent', 'climatePresent', '#007bff');
+const future  = createTernary('plot-future',  'valuesFuture',  'econFuture',  'healthFuture',  'climateFuture',  '#28a745');
 
-// Form submit guard to make sure both triangles have selections
+// Form guard
 document.getElementById('surveyForm').addEventListener('submit', function(e){
   if (!document.getElementById('econPresent').value || !document.getElementById('econFuture').value) {
     e.preventDefault();
