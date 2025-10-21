@@ -129,25 +129,24 @@ function createTernaryPlot(plotId, displayId, econInput, healthInput, climateInp
   const layout = {
     ternary: {
       sum: 100,
-      aaxis: { title: "Economic Growth", min: 0, linewidth: 2, ticks: 'outside' },
-      baxis: { title: "Health & Wellbeing", min: 0, linewidth: 2, ticks: 'outside' },
-      caxis: { title: "Care for Climate", min: 0, linewidth: 2, ticks: 'outside' },
+      aaxis: { title: "Economic Growth", min: 0 },
+      baxis: { title: "Health & Wellbeing", min: 0 },
+      caxis: { title: "Care for Climate", min: 0 },
       bgcolor: '#fff'
     },
     margin: { t: 50, l: 60, r: 60, b: 60 },
     paper_bgcolor: "#fff",
     plot_bgcolor: "#fff",
-    showlegend: false,
+    showlegend: false
   };
 
-  // Default neutral point
   const data = [{
     type: "scatterternary",
     mode: "markers",
     a: [33],
     b: [33],
     c: [34],
-    marker: { color: color, size: 10, symbol: "circle" }
+    marker: { color: color, size: 10 }
   }];
 
   Plotly.newPlot(plotId, data, layout, {responsive: true});
@@ -155,37 +154,47 @@ function createTernaryPlot(plotId, displayId, econInput, healthInput, climateInp
   const plot = document.getElementById(plotId);
   const display = document.getElementById(displayId);
 
-  // Enable clicking to set new point
-  plot.on('plotly_click', function(evt) {
-    const point = evt.points[0];
-    if (!point) return;
+  // Handle clicks anywhere inside the plot area
+  plot.addEventListener("click", function(e) {
+    const rect = plot.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const width = rect.width;
+    const height = rect.height;
 
-    const a = parseFloat(point.a.toFixed(1));
-    const b = parseFloat(point.b.toFixed(1));
-    const c = parseFloat(point.c.toFixed(1));
+    // Convert to barycentric (ternary) coordinates
+    const bx = x / width;
+    const by = 1 - (y / height);
 
-    Plotly.restyle(plotId, { a: [[a]], b: [[b]], c: [[c]] }, [0]);
+    // Simple conversion to make a,b,c roughly sum to 100
+    // The triangle apex is at (0.5, 1), base corners (0,0) and (1,0)
+    const A = Math.max(0, 1 - Math.abs(2*bx - 1) - (1 - by));
+    const B = Math.max(0, by);
+    const C = Math.max(0, 1 - (A + B));
+
+    const total = A + B + C || 1;
+    const aPct = (A / total * 100).toFixed(1);
+    const bPct = (B / total * 100).toFixed(1);
+    const cPct = (C / total * 100).toFixed(1);
+
+    Plotly.restyle(plotId, { a: [[aPct]], b: [[bPct]], c: [[cPct]] }, [0]);
 
     display.innerHTML = `<strong>Selected Values:</strong><br>
-    Economic Growth: ${a}% &nbsp; | &nbsp; Health & Wellbeing: ${b}% &nbsp; | &nbsp; Care for Climate: ${c}%`;
+      Economic Growth: ${aPct}% &nbsp; | &nbsp;
+      Health & Wellbeing: ${bPct}% &nbsp; | &nbsp;
+      Care for Climate: ${cPct}%`;
 
-    document.getElementById(econInput).value = a;
-    document.getElementById(healthInput).value = b;
-    document.getElementById(climateInput).value = c;
-  });
-
-  // Ensure clicks anywhere in the ternary area work
-  plot.addEventListener('click', function(e) {
-    const gd = plot._fullLayout;
-    if (!gd || !gd._invTransform) return;
+    document.getElementById(econInput).value = aPct;
+    document.getElementById(healthInput).value = bPct;
+    document.getElementById(climateInput).value = cPct;
   });
 }
 
-// Create both ternary plots
+// Create plots
 createTernaryPlot("plot-present", "valuesPresent", "econPresent", "healthPresent", "climatePresent", "#007bff");
 createTernaryPlot("plot-future", "valuesFuture", "econFuture", "healthFuture", "climateFuture", "#28a745");
 
-// Prevent submission if incomplete
+// Prevent submit without both clicks
 document.getElementById("surveyForm").addEventListener("submit", function(e) {
   if (
     !document.getElementById("econPresent").value ||
