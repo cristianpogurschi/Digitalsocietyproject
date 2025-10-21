@@ -32,6 +32,7 @@
   .values { margin-top:12px; font-weight:700; color:#333; min-height:44px; }
   .hint { font-size:13px; color:#777; margin-top:8px; }
   form { width:100%; max-width:1100px; text-align:center; margin-top:14px; }
+  input[type="email"] { margin-bottom:12px; padding:8px; width:250px; border-radius:6px; border:1px solid #ccc; }
   button {
     background:#007bff; color:#fff; border:none; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:16px;
   }
@@ -59,7 +60,6 @@
         <g id="grid-present" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
         <circle id="dot-present" cx="250" cy="200" r="8" fill="#007bff" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
 
-        <!-- Updated labels -->
         <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
         <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
         <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
@@ -76,7 +76,6 @@
         <g id="grid-future" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
         <circle id="dot-future" cx="250" cy="200" r="8" fill="#28a745" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
 
-        <!-- Updated labels -->
         <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
         <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
         <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
@@ -88,6 +87,7 @@
   </div>
 
   <form id="surveyForm" action="https://formspree.io/f/mjkadlzn" method="POST">
+    <input type="email" name="email" id="email" placeholder="Enter your email" required>
     <input type="hidden" name="economic_present" id="econPresent">
     <input type="hidden" name="health_present" id="healthPresent">
     <input type="hidden" name="climate_present" id="climatePresent">
@@ -196,11 +196,30 @@ const future  = initTriangle('svg-future','dot-future','grid-future','valuesFutu
 present.set(33.3,33.3,33.4);
 future.set(33.3,33.3,33.4);
 
-document.getElementById('surveyForm').addEventListener('submit', e=>{
-  if(!document.getElementById('econPresent').value||!document.getElementById('econFuture').value){
-    e.preventDefault();
-    alert('Please click inside both triangles before submitting.');
+document.getElementById('surveyForm').addEventListener('submit', function(e){
+  const emailInput = document.getElementById('email');
+  const email = emailInput.value.trim().toLowerCase();
+  if (!email) {
+      alert('Please enter your email.');
+      e.preventDefault();
+      return;
   }
+
+  const submittedEmails = JSON.parse(localStorage.getItem('submittedEmails') || '[]');
+  if (submittedEmails.includes(email)) {
+      alert('You have already submitted this survey.');
+      e.preventDefault();
+      return;
+  }
+
+  if(!document.getElementById('econPresent').value || !document.getElementById('econFuture').value){
+      alert('Please click inside both triangles before submitting.');
+      e.preventDefault();
+      return;
+  }
+
+  submittedEmails.push(email);
+  localStorage.setItem('submittedEmails', JSON.stringify(submittedEmails));
 });
 </script>
 </body>
