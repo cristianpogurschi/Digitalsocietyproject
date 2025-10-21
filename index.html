@@ -5,13 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Values Survey — Present & 2075</title>
 
-<!-- ✅ Load Plotly before your code -->
+<!-- Load Plotly first -->
 <script src="https://cdn.plot.ly/plotly-2.27.1.min.js"></script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-
 <style>
   :root {
     --primary: #007bff;
@@ -132,12 +129,10 @@
 </div>
 
 <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" novalidate>
-  <!-- Present -->
   <input type="hidden" name="economic_present" id="econPresent">
   <input type="hidden" name="health_present" id="healthPresent">
   <input type="hidden" name="climate_present" id="climatePresent">
 
-  <!-- Future -->
   <input type="hidden" name="economic_future" id="econFuture">
   <input type="hidden" name="health_future" id="healthFuture">
   <input type="hidden" name="climate_future" id="climateFuture">
@@ -149,44 +144,18 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  function generateTernaryGrid(sum = 100, step = 2) {
-    const a = [], b = [], c = [];
-    for (let A = 0; A <= sum; A += step) {
-      for (let B = 0; B <= sum - A; B += step) {
-        const C = sum - A - B;
-        a.push(A); b.push(B); c.push(C);
-      }
-    }
-    return { a, b, c };
-  }
 
   function createTernaryPlot({ plotId, displayId, econInputId, healthInputId, climateInputId, color }) {
     const el = document.getElementById(plotId);
     const displayEl = document.getElementById(displayId);
-    const SUM = 100, STEP = 2;
-    const grid = generateTernaryGrid(SUM, STEP);
+    const SUM = 100;
 
-    // ✅ Slightly increase opacity to make the click layer active
-    const gridTrace = {
-      type: "scatterternary",
-      mode: "markers",
-      a: grid.a,
-      b: grid.b,
-      c: grid.c,
-      marker: {
-        size: 18,
-        color: "rgba(0,0,0,0.05)", // <- clickable but invisible
-        opacity: 0.05
-      },
-      hoverinfo: "skip",
-      showlegend: false
-    };
-
+    // One single trace: user’s point
     const selectedTrace = {
       type: "scatterternary",
       mode: "markers",
       a: [34], b: [33], c: [33],
-      marker: { color, size: 12, symbol: "circle" },
+      marker: { color, size: 14, symbol: "circle" },
       hovertemplate:
         "Economic Growth: %{a}%<br>Health & Wellbeing: %{b}%<br>Care for Climate: %{c}%<extra></extra>",
       showlegend: false
@@ -207,10 +176,10 @@ document.addEventListener("DOMContentLoaded", function() {
       hovermode: "closest"
     };
 
-    Plotly.newPlot(el, [gridTrace, selectedTrace], layout, { responsive: true, displayModeBar: false });
+    Plotly.newPlot(el, [selectedTrace], layout, { responsive: true, displayModeBar: false });
 
     function updateSelection(A, B, C) {
-      Plotly.restyle(el, { a: [[A]], b: [[B]], c: [[C]] }, [1]);
+      Plotly.restyle(el, { a: [[A]], b: [[B]], c: [[C]] }, [0]);
       const aPct = A.toFixed(0), bPct = B.toFixed(0), cPct = C.toFixed(0);
       displayEl.innerHTML = `<strong>Selected Values:</strong><br>
         Economic Growth: ${aPct}% &nbsp; | &nbsp;
@@ -224,9 +193,41 @@ document.addEventListener("DOMContentLoaded", function() {
 
     updateSelection(34, 33, 33);
 
-    el.on("plotly_click", (evt) => {
-      const p = evt.points?.find(pt => pt.curveNumber === 0);
-      if (p) updateSelection(p.a, p.b, p.c);
+    // ✅ Instead of invisible grid, listen for clicks and map ternary coords
+    el.on('plotly_click', function(evt) {
+      const pt = evt.points[0];
+      if (pt && pt.a !== undefined && pt.b !== undefined && pt.c !== undefined) {
+        updateSelection(pt.a, pt.b, pt.c);
+      }
+    });
+
+    // ✅ Add simple direct click anywhere inside the ternary plot background
+    el.addEventListener('click', function(e) {
+      // Convert click pixel position to ternary coordinates
+      const gd = el._fullLayout.ternary;
+      if (!gd) return;
+
+      const bbox = el.getBoundingClientRect();
+      const x = e.clientX - bbox.left;
+      const y = e.clientY - bbox.top;
+
+      // Convert roughly based on triangle geometry (simple barycentric estimate)
+      const width = bbox.width * 0.8;
+      const height = bbox.height * 0.8;
+      const relX = x / width;
+      const relY = 1 - y / height;
+
+      let A = relX * 100;
+      let B = relY * 100;
+      if (A + B > 100) {
+        const scale = 100 / (A + B);
+        A *= scale;
+        B *= scale;
+      }
+      const C = 100 - A - B;
+      if (A >= 0 && B >= 0 && C >= 0) {
+        updateSelection(A, B, C);
+      }
     });
 
     window.addEventListener("resize", () => Plotly.Plots.resize(el));
@@ -263,6 +264,5 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 </script>
-
 </body>
 </html>
