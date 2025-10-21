@@ -32,7 +32,6 @@
   .values { margin-top:12px; font-weight:700; color:#333; min-height:44px; }
   .hint { font-size:13px; color:#777; margin-top:8px; }
   form { width:100%; max-width:1100px; text-align:center; margin-top:14px; }
-  input[type="email"] { margin-bottom:12px; padding:8px; width:250px; border-radius:6px; border:1px solid #ccc; }
   button {
     background:#007bff; color:#fff; border:none; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:16px;
   }
@@ -60,6 +59,7 @@
         <g id="grid-present" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
         <circle id="dot-present" cx="250" cy="200" r="8" fill="#007bff" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
 
+        <!-- Updated labels -->
         <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
         <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
         <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
@@ -76,6 +76,7 @@
         <g id="grid-future" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
         <circle id="dot-future" cx="250" cy="200" r="8" fill="#28a745" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
 
+        <!-- Updated labels -->
         <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
         <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
         <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
@@ -87,7 +88,6 @@
   </div>
 
   <form id="surveyForm" action="https://formspree.io/f/mjkadlzn" method="POST">
-    <input type="email" name="email" id="email" placeholder="Enter your email" required>
     <input type="hidden" name="economic_present" id="econPresent">
     <input type="hidden" name="health_present" id="healthPresent">
     <input type="hidden" name="climate_present" id="climatePresent">
@@ -102,9 +102,106 @@
 
   <footer>© 2025 Digital Society Project</footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@formspree/js"></script>
 <script>
-// JavaScript functions here (keep your existing JS code)
+function makeSVGPoint(svg, clientX, clientY) {
+  const pt = svg.createSVGPoint();
+  pt.x = clientX; pt.y = clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function barycentricFromPoint(p, vA, vB, vC) {
+  const denom = ((vB.y - vC.y)*(vA.x - vC.x) + (vC.x - vB.x)*(vA.y - vC.y));
+  if (Math.abs(denom) < 1e-12) return null;
+  const alpha = ((vB.y - vC.y)*(p.x - vC.x) + (vC.x - vB.x)*(p.y - vC.y)) / denom;
+  const beta  = ((vC.y - vA.y)*(p.x - vC.x) + (vA.x - vC.x)*(p.y - vC.y)) / denom;
+  const gamma = 1 - alpha - beta;
+  return { alpha, beta, gamma };
+}
+
+function clampAndNormalize({alpha, beta, gamma}) {
+  alpha = Math.max(0, alpha);
+  beta = Math.max(0, beta);
+  gamma = Math.max(0, gamma);
+  const sum = alpha + beta + gamma || 1;
+  return { alpha: alpha/sum, beta: beta/sum, gamma: gamma/sum };
+}
+
+function initTriangle(svgId, dotId, gridGroupId, displayId, econInputId, healthInputId, climateInputId, dotColor) {
+  const svg = document.getElementById(svgId);
+  const dot = document.getElementById(dotId);
+  const gridGroup = document.getElementById(gridGroupId);
+  const displayEl = document.getElementById(displayId);
+  const vA = { x: 250, y: 40 }, vB = { x: 60, y: 400 }, vC = { x: 440, y: 400 };
+
+  function drawGrid(lines = 6) {
+    while (gridGroup.firstChild) gridGroup.removeChild(gridGroup.firstChild);
+    for (let i = 1; i < lines; i++) {
+      const t = i / lines;
+      const L = { x: vB.x + (vA.x - vB.x)*t, y: vB.y + (vA.y - vB.y)*t };
+      const R = { x: vC.x + (vA.x - vC.x)*t, y: vC.y + (vA.y - vC.y)*t };
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', L.x); line.setAttribute('y1', L.y);
+      line.setAttribute('x2', R.x); line.setAttribute('y2', R.y);
+      line.setAttribute('stroke','#eee'); line.setAttribute('stroke-width','1');
+      gridGroup.appendChild(line);
+    }
+  }
+  drawGrid(6);
+
+  function setSelectionPoint(px, py, aPct, bPct, cPct) {
+    dot.setAttribute('cx', px);
+    dot.setAttribute('cy', py);
+    dot.setAttribute('fill', dotColor);
+    dot.setAttribute('visibility', 'visible');
+    const aS = Number(aPct).toFixed(1), bS = Number(bPct).toFixed(1), cS = Number(cPct).toFixed(1);
+    displayEl.innerHTML = `Selected Values:<br> Economic Growth and Health: ${aS}% &nbsp; | &nbsp; Wellbeing: ${bS}% &nbsp; | &nbsp; Care for Climate: ${cS}%`;
+    document.getElementById(econInputId).value = aS;
+    document.getElementById(healthInputId).value = bS;
+    document.getElementById(climateInputId).value = cS;
+  }
+
+  function handlePointer(evt) {
+    const isTouch = evt.touches && evt.touches.length;
+    const clientX = isTouch ? evt.touches[0].clientX : evt.clientX;
+    const clientY = isTouch ? evt.touches[0].clientY : evt.clientY;
+    const pSvg = makeSVGPoint(svg, clientX, clientY);
+    const bary = barycentricFromPoint(pSvg, vA, vB, vC);
+    if (!bary) return;
+    const bn = clampAndNormalize(bary);
+    const { alpha, beta, gamma } = bn;
+    const px = alpha*vA.x + beta*vB.x + gamma*vC.x;
+    const py = alpha*vA.y + beta*vB.y + gamma*vC.y;
+    setSelectionPoint(px, py, alpha*100, beta*100, gamma*100);
+    if (isTouch) evt.preventDefault();
+  }
+
+  svg.addEventListener('click', handlePointer);
+  svg.addEventListener('touchstart', handlePointer, { passive:false });
+
+  return {
+    set: function(aPct, bPct, cPct){
+      const alpha = Number(aPct)/100, beta = Number(bPct)/100, gamma = Number(cPct)/100;
+      const sum = alpha + beta + gamma || 1;
+      const an = alpha/sum, bn = beta/sum, gn = gamma/sum;
+      const px = an*vA.x + bn*vB.x + gn*vC.x;
+      const py = an*vA.y + bn*vB.y + gn*vC.y;
+      setSelectionPoint(px, py, an*100, bn*100, gn*100);
+    }
+  };
+}
+
+const present = initTriangle('svg-present','dot-present','grid-present','valuesPresent','econPresent','healthPresent','climatePresent','#007bff');
+const future  = initTriangle('svg-future','dot-future','grid-future','valuesFuture','econFuture','healthFuture','climateFuture','#28a745');
+
+present.set(33.3,33.3,33.4);
+future.set(33.3,33.3,33.4);
+
+document.getElementById('surveyForm').addEventListener('submit', e=>{
+  if(!document.getElementById('econPresent').value||!document.getElementById('econFuture').value){
+    e.preventDefault();
+    alert('Please click inside both triangles before submitting.');
+  }
+});
 </script>
 </body>
 </html>
