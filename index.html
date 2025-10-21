@@ -3,54 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Values Survey</title>
+  <title>Values Survey — Ternary Plot</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
-    body { font-family: sans-serif; margin: 2rem; background: #f8f9fa; }
-    h1 { text-align: center; }
-    .plot-container { display: flex; flex-direction: column; align-items: center; margin: 2rem 0; }
-    form { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-    input[type="number"] { width: 60px; text-align: center; }
-    button { background: #007bff; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #0056b3; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f2f4f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 2rem;
+      color: #222;
+    }
+    .container {
+      max-width: 800px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      padding: 2rem;
+      margin-top: 30px;
+    }
+    #plot {
+      width: 100%;
+      height: 500px;
+    }
+    .values {
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+    form {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    input[type="hidden"] {
+      display: none;
+    }
+    button {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Values Survey</h1>
-  <p>Please assign percentages to each value. Make sure they add up to 100.</p>
+  <h1>Values Survey — Present Day</h1>
 
-  <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-    <label>Economic Growth: <input type="number" name="economic" min="0" max="100" required></label>
-    <label>Social Equity: <input type="number" name="social" min="0" max="100" required></label>
-    <label>Environmental Sustainability: <input type="number" name="environment" min="0" max="100" required></label>
+  <div class="container">
+    <p>Click on the triangle to indicate how you balance the three priorities below.
+       The closer you click to a corner, the more you value that dimension. Percentages will appear after your click.</p>
 
-    <input type="hidden" name="timeframe" value="Present">
-    <button type="submit">Submit</button>
-  </form>
+    <div id="plot"></div>
+    <div class="values" id="valuesDisplay">Click inside the triangle to select your point.</div>
 
-  <div id="plot" class="plot-container"></div>
+    <!-- FORM: change the action URL below after creating your Formspree form -->
+    <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+      <input type="hidden" name="economic" id="econInput">
+      <input type="hidden" name="social" id="socialInput">
+      <input type="hidden" name="environment" id="envInput">
+      <input type="hidden" name="timeframe" value="Present">
+      <button type="submit">Submit Response</button>
+    </form>
+  </div>
+
+  <footer>© 2025 Values Survey — Digital Society Project</footer>
 
   <script>
-    // Draw ternary plot example
+    // Setup initial blank ternary plot
     const layout = {
       ternary: {
-        aaxis: { title: "Economic Growth" },
-        baxis: { title: "Social Equity" },
-        caxis: { title: "Environmental Sustainability" }
+        sum: 100,
+        aaxis: { title: "Economic Growth", min: 0, tickfont: { size: 12 } },
+        baxis: { title: "Social Equity", min: 0, tickfont: { size: 12 } },
+        caxis: { title: "Environmental Sustainability", min: 0, tickfont: { size: 12 } },
       },
-      title: "Example Ternary Plot"
-    };
-
-    const data = [{
-      type: "scatterternary",
-      mode: "markers",
-      a: [33],
-      b: [33],
-      c: [34],
-      marker: { symbol: "circle", color: "blue", size: 8 }
-    }];
-
-    Plotly.newPlot('plot', data, layout);
-  </script>
-</body>
-</html>
+      margi
