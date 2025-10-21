@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Values Survey</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; background: #f8f9fa; }
+    h1 { text-align: center; }
+    .plot-container { display: flex; flex-direction: column; align-items: center; margin: 2rem 0; }
+    form { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    input[type="number"] { width: 60px; text-align: center; }
+    button { background: #007bff; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>Values Survey</h1>
+  <p>Please assign percentages to each value. Make sure they add up to 100.</p>
+
+  <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+    <label>Economic Growth: <input type="number" name="economic" min="0" max="100" required></label>
+    <label>Social Equity: <input type="number" name="social" min="0" max="100" required></label>
+    <label>Environmental Sustainability: <input type="number" name="environment" min="0" max="100" required></label>
+
+    <input type="hidden" name="timeframe" value="Present">
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="plot" class="plot-container"></div>
+
+  <script>
+    // Draw ternary plot example
+    const layout = {
+      ternary: {
+        aaxis: { title: "Economic Growth" },
+        baxis: { title: "Social Equity" },
+        caxis: { title: "Environmental Sustainability" }
+      },
+      title: "Example Ternary Plot"
+    };
+
+    const data = [{
+      type: "scatterternary",
+      mode: "markers",
+      a: [33],
+      b: [33],
+      c: [34],
+      marker: { symbol: "circle", color: "blue", size: 8 }
+    }];
+
+    Plotly.newPlot('plot', data, layout);
+  </script>
+</body>
+</html>
