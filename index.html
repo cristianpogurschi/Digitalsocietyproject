@@ -230,15 +230,6 @@ document.getElementById('surveyForm').addEventListener('submit', function(e){
   submittedEmails.push(email);
   localStorage.setItem('submittedEmails', JSON.stringify(submittedEmails));
 
-  // Add hidden email input for Formspree
-  if(!document.getElementById('emailHidden')){
-    const hiddenEmail = document.createElement('input');
-    hiddenEmail.type = 'hidden';
-    hiddenEmail.name = 'email';
-    hiddenEmail.id = 'emailHidden';
-    hiddenEmail.value = email;
-    this.appendChild(hiddenEmail);
-  }
 });
 </script>
 </body>
