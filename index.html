@@ -1,117 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Values Survey — Present & 2075</title>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f3f5f9;
-      color: #333;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h1 {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 2rem;
-      color: #222;
-    }
-
-    p {
-      text-align: center;
-      max-width: 700px;
-      color: #555;
-      line-height: 1.5;
-      font-size: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .plots {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2rem;
-      width: 100%;
-      max-width: 1200px;
-    }
-
-    .plot-card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      padding: 1.5rem;
-      width: 500px;
-      text-align: center;
-    }
-
-    .plot-card h2 {
-      color: #007bff;
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
-    }
-
-    #plot-present, #plot-future {
-      width: 100%;
-      height: 500px;
-    }
-
-    .values {
-      font-weight: 500;
-      margin-top: 0.8rem;
-      font-size: 1.05rem;
-    }
-
-    form {
-      margin-top: 2rem;
-      text-align: center;
-    }
-
-    button {
-      background-color: #007bff;
-      border: none;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    footer {
-      margin: 40px 0 20px;
-      font-size: 0.9rem;
-      color: #666;
-      text-align: center;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Values Survey — Present & 2075</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f5f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 2rem;
+    color: #222;
+  }
+  p {
+    text-align: center;
+    max-width: 700px;
+    color: #555;
+    line-height: 1.5;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+  .plots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+  }
+  .plot-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    width: 500px;
+    text-align: center;
+  }
+  .plot-card h2 {
+    color: #007bff;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+  #plot-present, #plot-future {
+    width: 100%;
+    height: 500px;
+  }
+  .values {
+    font-weight: 500;
+    margin-top: 0.8rem;
+    font-size: 1.05rem;
+  }
+  form {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background-color: #0056b3;
+  }
+  footer {
+    margin: 40px 0 20px;
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+  }
+</style>
 </head>
-
 <body>
   <h1>Values Survey — Present Day vs Year 2075</h1>
-  <p>Click inside each triangle to indicate how you balance the three priorities below.
-     The closer you click to a corner, the more you value that dimension.
-     After clicking both plots, press “Submit”.</p>
+  <p>Click inside each triangle to indicate how you balance the three priorities below. The closer you click to a corner, the more you value that dimension. After clicking both plots, press “Submit”.</p>
 
   <div class="plots">
-    <!-- PRESENT PLOT -->
     <div class="plot-card">
       <h2>Present Day</h2>
       <div id="plot-present"></div>
       <div class="values" id="valuesPresent">Click inside the triangle to select your point.</div>
     </div>
 
-    <!-- FUTURE PLOT -->
     <div class="plot-card">
       <h2>Year 2075</h2>
       <div id="plot-future"></div>
@@ -119,14 +103,11 @@
     </div>
   </div>
 
-  <!-- FORM -->
   <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-    <!-- PRESENT -->
     <input type="hidden" name="economic_present" id="econPresent">
     <input type="hidden" name="social_present" id="socialPresent">
     <input type="hidden" name="environment_present" id="envPresent">
 
-    <!-- FUTURE -->
     <input type="hidden" name="economic_future" id="econFuture">
     <input type="hidden" name="social_future" id="socialFuture">
     <input type="hidden" name="environment_future" id="envFuture">
@@ -136,75 +117,67 @@
 
   <footer>© 2025 Digital Society Project — Interactive Values Survey</footer>
 
-  <script>
-    function createTernaryPlot(plotId, displayId, econInput, socInput, envInput, color) {
-      const layout = {
-        ternary: {
-          sum: 100,
-          aaxis: { title: "Economic Growth", min: 0, tickangle: 0 },
-          baxis: { title: "Social Equity", min: 0, tickangle: 0 },
-          caxis: { title: "Environmental Sustainability", min: 0, tickangle: 0 },
-        },
-        margin: { t: 40, l: 60, r: 60, b: 60 },
-        showlegend: false,
-        bgcolor: "#fff",
-        plot_bgcolor: "#fff",
-        paper_bgcolor: "#fff",
-      };
+<script>
+function createTernaryPlot(plotId, displayId, econInput, socInput, envInput, color) {
+  const layout = {
+    ternary: {
+      sum: 100,
+      aaxis: { title: "Economic Growth", min: 0 },
+      baxis: { title: "Social Equity", min: 0 },
+      caxis: { title: "Environmental Sustainability", min: 0 },
+      bgcolor: '#fff',
+    },
+    margin: { t: 50, l: 60, r: 60, b: 60 },
+    paper_bgcolor: "#fff",
+    plot_bgcolor: "#fff",
+    showlegend: false,
+  };
 
-      const data = [{
-        type: "scatterternary",
-        mode: "markers",
-        a: [],
-        b: [],
-        c: [],
-        marker: { color: color, size: 10, symbol: "circle" }
-      }];
+  const data = [{
+    type: "scatterternary",
+    mode: "markers",
+    a: [33],
+    b: [33],
+    c: [34],
+    marker: { color: color, size: 10, symbol: "circle" }
+  }];
 
-      Plotly.newPlot(plotId, data, layout, {responsive: true});
+  Plotly.newPlot(plotId, data, layout, {responsive: true});
 
-      const plot = document.getElementById(plotId);
-      const display = document.getElementById(displayId);
+  const plot = document.getElementById(plotId);
+  const display = document.getElementById(displayId);
 
-      // Clicking functionality
-      plot.on('plotly_click', function(evt) {
-        const point = evt.points[0];
-        const a = point.a.toFixed(1);
-        const b = point.b.toFixed(1);
-        const c = point.c.toFixed(1);
+  plot.on('plotly_click', function(evt) {
+    const point = evt.points[0];
+    const a = point.a.toFixed(1);
+    const b = point.b.toFixed(1);
+    const c = point.c.toFixed(1);
 
-        Plotly.restyle(plotId, { a: [[a]], b: [[b]], c: [[c]] }, [0]);
+    Plotly.restyle(plotId, { a: [[a]], b: [[b]], c: [[c]] }, [0]);
 
-        display.innerHTML = `
-          <strong>Selected Values:</strong><br>
-          Economic Growth: ${a}% &nbsp; | &nbsp;
-          Social Equity: ${b}% &nbsp; | &nbsp;
-          Environmental Sustainability: ${c}%
-        `;
+    display.innerHTML = `<strong>Selected Values:</strong><br>
+    Economic Growth: ${a}% &nbsp; | &nbsp; Social Equity: ${b}% &nbsp; | &nbsp; Environmental Sustainability: ${c}%`;
 
-        document.getElementById(econInput).value = a;
-        document.getElementById(socInput).value = b;
-        document.getElementById(envInput).value = c;
-      });
+    document.getElementById(econInput).value = a;
+    document.getElementById(socInput).value = b;
+    document.getElementById(envInput).value = c;
+  });
+}
 
-      // Allow clicking anywhere inside
-      plot.on('click', function(event) {
-        if (!event.points || event.points.length === 0) return;
-      });
-    }
+createTernaryPlot("plot-present", "valuesPresent", "econPresent", "socialPresent", "envPresent", "#007bff");
+createTernaryPlot("plot-future", "valuesFuture", "econFuture", "socialFuture", "envFuture", "#28a745");
 
-    createTernaryPlot("plot-present", "valuesPresent", "econPresent", "socialPresent", "envPresent", "#007bff");
-    createTernaryPlot("plot-future", "valuesFuture", "econFuture", "socialFuture", "envFuture", "#28a745");
-
-    document.getElementById("surveyForm").addEventListener("submit", function(e) {
-      if (
-        !document.getElementById("econPresent").value ||
-        !document.getElementById("econFuture").value
-      ) {
-        e.preventDefault();
-        alert("Please click on both triangles to select your values before submitting.");
-      }
-    });
-  </script>
+document.getElementById("surveyForm").addEventListener("submit", function(e) {
+  if (
+    !document.getElementById("econPresent").value ||
+    !document.getElementById("econFuture").value
+  ) {
+    e.preventDefault();
+    alert("Please click on both triangles to select your values before submitting.");
+  }
+});
+</script>
 </body>
 </html>
+
+
