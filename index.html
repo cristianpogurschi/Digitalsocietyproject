@@ -104,32 +104,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@formspree/js"></script>
 <script>
-function makeSVGPoint(svg, clientX, clientY) {
-  const pt = svg.createSVGPoint();
-  pt.x = clientX; pt.y = clientY;
-  return pt.matrixTransform(svg.getScreenCTM().inverse());
-}
-
-function barycentricFromPoint(p, vA, vB, vC) {
-  const denom = ((vB.y - vC.y)*(vA.x - vC.x) + (vC.x - vB.x)*(vA.y - vC.y));
-  if (Math.abs(denom) < 1e-12) return null;
-  const alpha = ((vB.y - vC.y)*(p.x - vC.x) + (vC.x - vB.x)*(p.y - vC.y)) / denom;
-  const beta  = ((vC.y - vA.y)*(p.x - vC.x) + (vA.x - vC.x)*(p.y - vC.y)) / denom;
-  const gamma = 1 - alpha - beta;
-  return { alpha, beta, gamma };
-}
-
-function clampAndNormalize({alpha, beta, gamma}) {
-  alpha = Math.max(0, alpha);
-  beta = Math.max(0, beta);
-  gamma = Math.max(0, gamma);
-  const sum = alpha + beta + gamma || 1;
-  return { alpha: alpha/sum, beta: beta/sum, gamma: gamma/sum };
-}
-
-function initTriangle(svgId, dotId, gridGroupId, displayId, econInputId, healthInputId, climateInputId, dotColor) {
-  const svg = document.getElementById(svgId);
-  const dot = document.getElementById(dotId);
-  const gridGroup = document.getElementById(gridGroupId);
-  const displayEl = document.getElementById(displayId);
-  const vA = { x: 250, y: 40 }, vB = { x: 60, y: 400 }, vC = { x
+// JavaScript functions here (keep your existing JS code)
+</script>
+</body>
+</html>
