@@ -202,6 +202,84 @@ document.getElementById('surveyForm').addEventListener('submit', e=>{
     alert('Please click inside both triangles before submitting.');
   }
 });
+  <form id="contactForm">
+  <input type="text" name="name" placeholder="Your Name" required>
+  <input type="email" name="email" placeholder="Your Email" required>
+  <button type="submit">Submit</button>
+</form>
+
+<div id="message"></div>
+
+<script>
+const form = document.getElementById('contactForm');
+const message = document.getElementById('message');
+
+// Cookie helpers
+function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + days*24*60*60*1000);
+    document.cookie = name + "=" + value + ";expires=" + d.toUTCString() + ";path=/";
+}
+
+function getCookie(name) {
+    const cname = name + "=";
+    const decoded = decodeURIComponent(document.cookie);
+    const ca = decoded.split(';');
+    for (let c of ca) {
+        c = c.trim();
+        if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
+    }
+    return "";
+}
+
+// Check cookie first
+if (getCookie('formSubmitted') === 'true') {
+    form.style.display = 'none';
+    message.textContent = "You have already submitted the form.";
+}
+
+// Formspree API endpoint
+const FORMSPREE_ID = "YOUR_FORM_ID"; // replace with your Formspree form ID
+const FORM_ENDPOINT = `https://formspree.io/f/${FORMSPREE_ID}`;
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const email = formData.get('email');
+
+    // Optional: check if email already submitted
+    // This requires Formspree Pro API (or you can store emails yourself in a DB)
+    // For static site, we’ll just prevent multiple submissions via cookies
+    if (getCookie('formSubmitted') === 'true') {
+        message.textContent = "You have already submitted the form.";
+        return;
+    }
+
+    try {
+        const response = await fetch(FORM_ENDPOINT, {
+            method: "POST",
+            headers: { 'Accept': 'application/json' },
+            body: formData
+        });
+
+        if (response.ok) {
+            setCookie('formSubmitted', 'true', 365); // 1 year
+            form.style.display = 'none';
+            message.textContent = "Thank you! Your form has been submitted.";
+        } else {
+            const data = await response.json();
+            if (data.errors) {
+                message.textContent = data.errors.map(err => err.message).join(", ");
+            } else {
+                message.textContent = "Oops! There was a problem submitting your form.";
+            }
+        }
+    } catch (err) {
+        message.textContent = "Network error. Please try again later.";
+        console.error(err);
+    }
+});
 </script>
 </body>
 </html>
