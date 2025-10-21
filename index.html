@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html> 
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -35,6 +35,7 @@
   button {
     background:#007bff; color:#fff; border:none; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:16px;
   }
+  #message { margin-top:12px; font-weight:bold; color:green; }
   footer { margin-top:18px; color:#777; font-size:13px; }
   @media (max-width:980px){
     .card { width:92%; }
@@ -54,17 +55,13 @@
             <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.12"/>
           </filter>
         </defs>
-
         <polygon id="tri-present" points="250,40 60,400 440,400" fill="#fff" stroke="#ccc" stroke-width="2"></polygon>
         <g id="grid-present" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
         <circle id="dot-present" cx="250" cy="200" r="8" fill="#007bff" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
-
-        <!-- Updated labels -->
         <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
         <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
         <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
       </svg>
-
       <div class="values" id="valuesPresent">Selected Values: —</div>
       <div class="hint">Click anywhere inside the triangle (touch supported).</div>
     </div>
@@ -75,30 +72,28 @@
         <polygon id="tri-future" points="250,40 60,400 440,400" fill="#fff" stroke="#ccc" stroke-width="2"></polygon>
         <g id="grid-future" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
         <circle id="dot-future" cx="250" cy="200" r="8" fill="#28a745" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
-
-        <!-- Updated labels -->
         <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
         <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
         <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
       </svg>
-
       <div class="values" id="valuesFuture">Selected Values: —</div>
       <div class="hint">Click anywhere inside the triangle (touch supported).</div>
     </div>
   </div>
 
-  <form id="surveyForm" action="https://formspree.io/f/mjkadlzn" method="POST">
+  <form id="surveyForm">
     <input type="hidden" name="economic_present" id="econPresent">
     <input type="hidden" name="health_present" id="healthPresent">
     <input type="hidden" name="climate_present" id="climatePresent">
     <input type="hidden" name="economic_future" id="econFuture">
     <input type="hidden" name="health_future" id="healthFuture">
     <input type="hidden" name="climate_future" id="climateFuture">
-
     <div style="margin-top:18px;">
       <button type="submit">Submit Both Responses</button>
     </div>
   </form>
+
+  <div id="message"></div>
 
   <footer>© 2025 Digital Society Project</footer>
 
@@ -196,10 +191,68 @@ const future  = initTriangle('svg-future','dot-future','grid-future','valuesFutu
 present.set(33.3,33.3,33.4);
 future.set(33.3,33.3,33.4);
 
-document.getElementById('surveyForm').addEventListener('submit', e=>{
-  if(!document.getElementById('econPresent').value||!document.getElementById('econFuture').value){
-    e.preventDefault();
+// Cookie helpers
+function setCookie(name, value, days) {
+  const d = new Date();
+  d.setTime(d.getTime() + days*24*60*60*1000);
+  document.cookie = name + "=" + value + ";expires=" + d.toUTCString() + ";path=/";
+}
+
+function getCookie(name) {
+  const cname = name + "=";
+  const decoded = decodeURIComponent(document.cookie);
+  const ca = decoded.split(';');
+  for (let c of ca) {
+    c = c.trim();
+    if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
+  }
+  return "";
+}
+
+const surveyForm = document.getElementById('surveyForm');
+const messageDiv = document.getElementById('message');
+
+// Hide form if already submitted
+if (getCookie('formSubmitted') === 'true') {
+  surveyForm.style.display = 'none';
+  messageDiv.textContent = "You have already submitted the form.";
+}
+
+surveyForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  if(!document.getElementById('econPresent').value || !document.getElementById('econFuture').value){
     alert('Please click inside both triangles before submitting.');
+    return;
+  }
+
+  // Prevent duplicate submission via cookie
+  if (getCookie('formSubmitted') === 'true') {
+    messageDiv.textContent = "You have already submitted the form.";
+    surveyForm.style.display = 'none';
+    return;
+  }
+
+  const formData = new FormData(surveyForm);
+
+  try {
+    const response = await fetch('https://formspree.io/f/mjkadlzn', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: formData
+    });
+
+    if (response.ok) {
+      setCookie('formSubmitted', 'true', 365); // 1 year
+      surveyForm.style.display = 'none';
+      messageDiv.textContent = "Thank you! Your form has been submitted.";
+    } else {
+      const data = await response.json();
+      messageDiv.textContent = data.errors ? data.errors.map(err => err.message).join(", ") : "Oops! There was a problem submitting your form.";
+    }
+  } catch(err) {
+    console.error(err);
+    messageDiv.textContent = "Network error. Please try again later.";
   }
 });
 </script>
