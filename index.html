@@ -86,46 +86,53 @@
 </style>
 </head>
 <body>
-  <h1>Values Survey — Present Day vs Year 2075</h1>
-  <p>Click inside each triangle to indicate how you balance the three priorities below. The closer you click to a corner, the more you value that dimension. After clicking both plots, press “Submit”.</p>
 
-  <div class="plots">
-    <div class="plot-card">
-      <h2>Present Day</h2>
-      <div id="plot-present"></div>
-      <div class="values" id="valuesPresent">Click inside the triangle to select your point.</div>
-    </div>
+<h1>Values Survey — Present Day vs Year 2075</h1>
+<p>
+Click inside each triangle to indicate how you balance the three priorities below.
+The closer you click to a corner, the more you value that dimension.
+After clicking both plots, press “Submit”.
+</p>
 
-    <div class="plot-card">
-      <h2>Year 2075</h2>
-      <div id="plot-future"></div>
-      <div class="values" id="valuesFuture">Click inside the triangle to select your point.</div>
-    </div>
+<div class="plots">
+  <div class="plot-card">
+    <h2>Present Day</h2>
+    <div id="plot-present"></div>
+    <div class="values" id="valuesPresent">Click inside the triangle to select your point.</div>
   </div>
 
-  <form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-    <input type="hidden" name="economic_present" id="econPresent">
-    <input type="hidden" name="social_present" id="socialPresent">
-    <input type="hidden" name="environment_present" id="envPresent">
+  <div class="plot-card">
+    <h2>Year 2075</h2>
+    <div id="plot-future"></div>
+    <div class="values" id="valuesFuture">Click inside the triangle to select your point.</div>
+  </div>
+</div>
 
-    <input type="hidden" name="economic_future" id="econFuture">
-    <input type="hidden" name="social_future" id="socialFuture">
-    <input type="hidden" name="environment_future" id="envFuture">
+<form id="surveyForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+  <!-- Present -->
+  <input type="hidden" name="economic_present" id="econPresent">
+  <input type="hidden" name="health_present" id="healthPresent">
+  <input type="hidden" name="climate_present" id="climatePresent">
 
-    <button type="submit">Submit Both Responses</button>
-  </form>
+  <!-- Future -->
+  <input type="hidden" name="economic_future" id="econFuture">
+  <input type="hidden" name="health_future" id="healthFuture">
+  <input type="hidden" name="climate_future" id="climateFuture">
 
-  <footer>© 2025 Digital Society Project — Interactive Values Survey</footer>
+  <button type="submit">Submit Both Responses</button>
+</form>
+
+<footer>© 2025 Digital Society Project — Interactive Values Survey</footer>
 
 <script>
-function createTernaryPlot(plotId, displayId, econInput, socInput, envInput, color) {
+function createTernaryPlot(plotId, displayId, econInput, healthInput, climateInput, color) {
   const layout = {
     ternary: {
       sum: 100,
-      aaxis: { title: "Economic Growth", min: 0 },
-      baxis: { title: "Social Equity", min: 0 },
-      caxis: { title: "Environmental Sustainability", min: 0 },
-      bgcolor: '#fff',
+      aaxis: { title: "Economic Growth", min: 0, linewidth: 2, ticks: 'outside' },
+      baxis: { title: "Health & Wellbeing", min: 0, linewidth: 2, ticks: 'outside' },
+      caxis: { title: "Care for Climate", min: 0, linewidth: 2, ticks: 'outside' },
+      bgcolor: '#fff'
     },
     margin: { t: 50, l: 60, r: 60, b: 60 },
     paper_bgcolor: "#fff",
@@ -133,6 +140,7 @@ function createTernaryPlot(plotId, displayId, econInput, socInput, envInput, col
     showlegend: false,
   };
 
+  // Default neutral point
   const data = [{
     type: "scatterternary",
     mode: "markers",
@@ -147,26 +155,37 @@ function createTernaryPlot(plotId, displayId, econInput, socInput, envInput, col
   const plot = document.getElementById(plotId);
   const display = document.getElementById(displayId);
 
+  // Enable clicking to set new point
   plot.on('plotly_click', function(evt) {
     const point = evt.points[0];
-    const a = point.a.toFixed(1);
-    const b = point.b.toFixed(1);
-    const c = point.c.toFixed(1);
+    if (!point) return;
+
+    const a = parseFloat(point.a.toFixed(1));
+    const b = parseFloat(point.b.toFixed(1));
+    const c = parseFloat(point.c.toFixed(1));
 
     Plotly.restyle(plotId, { a: [[a]], b: [[b]], c: [[c]] }, [0]);
 
     display.innerHTML = `<strong>Selected Values:</strong><br>
-    Economic Growth: ${a}% &nbsp; | &nbsp; Social Equity: ${b}% &nbsp; | &nbsp; Environmental Sustainability: ${c}%`;
+    Economic Growth: ${a}% &nbsp; | &nbsp; Health & Wellbeing: ${b}% &nbsp; | &nbsp; Care for Climate: ${c}%`;
 
     document.getElementById(econInput).value = a;
-    document.getElementById(socInput).value = b;
-    document.getElementById(envInput).value = c;
+    document.getElementById(healthInput).value = b;
+    document.getElementById(climateInput).value = c;
+  });
+
+  // Ensure clicks anywhere in the ternary area work
+  plot.addEventListener('click', function(e) {
+    const gd = plot._fullLayout;
+    if (!gd || !gd._invTransform) return;
   });
 }
 
-createTernaryPlot("plot-present", "valuesPresent", "econPresent", "socialPresent", "envPresent", "#007bff");
-createTernaryPlot("plot-future", "valuesFuture", "econFuture", "socialFuture", "envFuture", "#28a745");
+// Create both ternary plots
+createTernaryPlot("plot-present", "valuesPresent", "econPresent", "healthPresent", "climatePresent", "#007bff");
+createTernaryPlot("plot-future", "valuesFuture", "econFuture", "healthFuture", "climateFuture", "#28a745");
 
+// Prevent submission if incomplete
 document.getElementById("surveyForm").addEventListener("submit", function(e) {
   if (
     !document.getElementById("econPresent").value ||
@@ -179,5 +198,3 @@ document.getElementById("surveyForm").addEventListener("submit", function(e) {
 </script>
 </body>
 </html>
-
-
