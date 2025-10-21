@@ -49,62 +49,62 @@
 </style>
 </head>
 <body>
-  <h1>Values Survey — Present Day vs Year 2075</h1>
-  <p>Click inside each triangle to set your balance across three priorities. The closer you click to a corner the more you prioritize that value. After you have clicked both triangles, press “Submit”.</p>
+<h1>Values Survey — Present Day vs Year 2075</h1>
+<p>Click inside each triangle to set your balance across three priorities. The closer you click to a corner the more you prioritize that value. After you have clicked both triangles, press “Submit”.</p>
 
-  <div class="plots">
-    <div class="card">
-      <h2 style="color:#007bff;margin-bottom:6px;">Present Day</h2>
-      <svg id="svg-present" viewBox="0 0 500 460" preserveAspectRatio="xMidYMid meet" aria-label="Present ternary">
-        <defs>
-          <filter id="drop" x="-10%" y="-10%" width="120%" height="120%">
-            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.12"/>
-          </filter>
-        </defs>
-        <polygon id="tri-present" points="250,40 60,400 440,400" fill="#fff" stroke="#ccc" stroke-width="2"></polygon>
-        <g id="grid-present" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
-        <circle id="dot-present" cx="250" cy="200" r="8" fill="#007bff" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
-        <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
-        <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
-        <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
-      </svg>
-      <div class="values" id="valuesPresent">Selected Values: —</div>
-      <div class="hint">Click anywhere inside the triangle (touch supported).</div>
-    </div>
-
-    <div class="card">
-      <h2 style="color:#28a745;margin-bottom:6px;">Year 2075</h2>
-      <svg id="svg-future" viewBox="0 0 500 460" preserveAspectRatio="xMidYMid meet" aria-label="Future ternary">
-        <polygon id="tri-future" points="250,40 60,400 440,400" fill="#fff" stroke="#ccc" stroke-width="2"></polygon>
-        <g id="grid-future" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
-        <circle id="dot-future" cx="250" cy="200" r="8" fill="#28a745" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
-        <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
-        <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
-        <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
-      </svg>
-      <div class="values" id="valuesFuture">Selected Values: —</div>
-      <div class="hint">Click anywhere inside the triangle (touch supported).</div>
-    </div>
+<div class="plots">
+  <div class="card">
+    <h2 style="color:#007bff;margin-bottom:6px;">Present Day</h2>
+    <svg id="svg-present" viewBox="0 0 500 460" preserveAspectRatio="xMidYMid meet" aria-label="Present ternary">
+      <defs>
+        <filter id="drop" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+      <polygon id="tri-present" points="250,40 60,400 440,400" fill="#fff" stroke="#ccc" stroke-width="2"></polygon>
+      <g id="grid-present" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
+      <circle id="dot-present" cx="250" cy="200" r="8" fill="#007bff" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
+      <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
+      <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
+      <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
+    </svg>
+    <div class="values" id="valuesPresent">Selected Values: —</div>
+    <div class="hint">Click anywhere inside the triangle (touch supported).</div>
   </div>
 
-  <form id="surveyForm" action="https://formspree.io/f/mjkadlzn" method="POST">
-    <!-- Email input -->
-    <input type="email" name="email" id="email" placeholder="Enter your email" required>
+  <div class="card">
+    <h2 style="color:#28a745;margin-bottom:6px;">Year 2075</h2>
+    <svg id="svg-future" viewBox="0 0 500 460" preserveAspectRatio="xMidYMid meet" aria-label="Future ternary">
+      <polygon id="tri-future" points="250,40 60,400 440,400" fill="#fff" stroke="#ccc" stroke-width="2"></polygon>
+      <g id="grid-future" stroke="#e6e6e6" stroke-width="1" opacity="0.9"></g>
+      <circle id="dot-future" cx="250" cy="200" r="8" fill="#28a745" stroke="#fff" stroke-width="2" visibility="hidden" filter="url(#drop)"></circle>
+      <text x="250" y="22" class="axis-label">Economic Growth and Health</text>
+      <text x="32" y="412" class="corner-label-left" text-anchor="start">Wellbeing</text>
+      <text x="468" y="412" class="corner-label-right" text-anchor="end">Care for Climate</text>
+    </svg>
+    <div class="values" id="valuesFuture">Selected Values: —</div>
+    <div class="hint">Click anywhere inside the triangle (touch supported).</div>
+  </div>
+</div>
 
-    <!-- Hidden inputs for ternary selections -->
-    <input type="hidden" name="economic_present" id="econPresent">
-    <input type="hidden" name="health_present" id="healthPresent">
-    <input type="hidden" name="climate_present" id="climatePresent">
-    <input type="hidden" name="economic_future" id="econFuture">
-    <input type="hidden" name="health_future" id="healthFuture">
-    <input type="hidden" name="climate_future" id="climateFuture">
+<form id="surveyForm" action="https://formspree.io/f/mjkadlzn" method="POST">
+  <!-- Correct Formspree email field -->
+  <input type="email" name="_replyto" id="email" placeholder="Enter your email" required>
 
-    <div style="margin-top:18px;">
-      <button type="submit">Submit Both Responses</button>
-    </div>
-  </form>
+  <!-- Hidden inputs for ternary selections -->
+  <input type="hidden" name="economic_present" id="econPresent">
+  <input type="hidden" name="health_present" id="healthPresent">
+  <input type="hidden" name="climate_present" id="climatePresent">
+  <input type="hidden" name="economic_future" id="econFuture">
+  <input type="hidden" name="health_future" id="healthFuture">
+  <input type="hidden" name="climate_future" id="climateFuture">
 
-  <footer>© 2025 Digital Society Project</footer>
+  <div style="margin-top:18px;">
+    <button type="submit">Submit Both Responses</button>
+  </div>
+</form>
+
+<footer>© 2025 Digital Society Project</footer>
 
 <script>
 function makeSVGPoint(svg, clientX, clientY) {
@@ -229,7 +229,6 @@ document.getElementById('surveyForm').addEventListener('submit', function(e){
   // Save email to localStorage
   submittedEmails.push(email);
   localStorage.setItem('submittedEmails', JSON.stringify(submittedEmails));
-
 });
 </script>
 </body>
