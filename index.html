@@ -93,10 +93,10 @@
 
   <!-- Hidden inputs for ternary selections -->
   <input type="hidden" name="economic_present" id="econPresent">
-  <input type="hidden" name="health_present" id="healthPresent">
+  <input type="hidden" name="wellbeing_present" id="wellbeingPresent">
   <input type="hidden" name="climate_present" id="climatePresent">
   <input type="hidden" name="economic_future" id="econFuture">
-  <input type="hidden" name="health_future" id="healthFuture">
+  <input type="hidden" name="wellbeing_future" id="wellbeingFuture">
   <input type="hidden" name="climate_future" id="climateFuture">
 
   <div style="margin-top:18px;">
@@ -194,8 +194,8 @@ function initTriangle(svgId, dotId, gridGroupId, displayId, econInputId, healthI
   };
 }
 
-const present = initTriangle('svg-present','dot-present','grid-present','valuesPresent','econPresent','healthPresent','climatePresent','#007bff');
-const future  = initTriangle('svg-future','dot-future','grid-future','valuesFuture','econFuture','healthFuture','climateFuture','#28a745');
+const present = initTriangle('svg-present','dot-present','grid-present','valuesPresent','econPresent','wellbeingPresent','climatePresent','#007bff');
+const future  = initTriangle('svg-future','dot-future','grid-future','valuesFuture','econFuture','wellbeingFuture','climateFuture','#28a745');
 
 present.set(33.3,33.3,33.4);
 future.set(33.3,33.3,33.4);
